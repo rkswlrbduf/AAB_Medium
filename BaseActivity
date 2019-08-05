@@ -1,0 +1,26 @@
+// BaseActivity의 attachBaseContext
+override fun attachBaseContext(newBase: Context?) {
+    super.attachBaseContext(LocaleWrapper.wrap(newBase))
+    SplitCompat.install(this)
+}
+
+// BaseActivity splitInstallManager, splitInstallListener
+val splitInstallManager: SplitInstallManager by lazy { SplitInstallManagerFactory.create(this) }
+private val splitInstallListener by lazy {
+    SplitInstallStateUpdatedListener { state ->
+        when (state.status()) {
+            SplitInstallSessionStatus.FAILED -> {
+                hideQandaProgressbar()
+            }
+            SplitInstallSessionStatus.INSTALLED -> {
+                restartApp(this, LoadingActivity::class.java)
+            }
+        }
+    }
+}
+
+// BaseActivity onCreate()
+splitInstallManager.registerListener(splitInstallListener)
+
+// BaseActivity onDestroy()
+splitInstallManager.unregisterListener(splitInstallListener)
